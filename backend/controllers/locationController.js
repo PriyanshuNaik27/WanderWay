@@ -13,6 +13,15 @@ exports.getPlacesFromLocation = async (req, res) => {
   }
 };
 
+exports.getRandomLocations = async (req, res) => {
+  try {
+    const locations = await Location.aggregate([{ $sample: { size: 5 } }]);
+    res.json({ locations });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching random locations", error });
+  }
+};
+
 exports.addPlace = async (req, res) => {
   try {
     const { locationName, placeName } = req.body;
@@ -28,9 +37,8 @@ exports.addPlace = async (req, res) => {
       fromLocation: location._id,
       addedBy: req.user.id,
     });
-
-    await place.save();
-    res.json({ message: "Place added" });
+    await place.save(); 
+    res.json({ message: "Place added", place });
   } catch (error) {
     res.status(500).json({ message: "Error adding place", error });
   }

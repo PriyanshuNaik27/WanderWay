@@ -4,8 +4,11 @@ const locationController = require("../controllers/locationController");
 const { protect } = require("../middleware/authMiddleware");
 const Place = require("../models/Place");
 
+
+router.get("/random-locations", locationController.getRandomLocations);
 router.get("/:locationName", locationController.getPlacesFromLocation);
 router.post("/add", protect, locationController.addPlace);
+
 
 // add review route
 router.post("/place/:placeId/review", protect, async (req, res) => {

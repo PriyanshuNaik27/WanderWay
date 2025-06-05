@@ -6,12 +6,16 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export default function AddPlace() {
   const [inLocation, setInLocation] = useState('');
   const [toLocation, setToLocation] = useState('');
+  const [showReview, setShowReview] = useState(false);
+  const [lastPlaceId, setLastPlaceId] = useState(null);
+  const [rating, setRating] = useState('');
+  const [comment, setComment] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      const res = await axios.post(
         `${apiUrl}/api/location/add`,
         { locationName: inLocation, placeName: toLocation },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -19,8 +23,29 @@ export default function AddPlace() {
       alert('Location added!');
       setInLocation('');
       setToLocation('');
+      // Get the new place's ID from the backend response
+      setLastPlaceId(res.data.place?._id);
+      setShowReview(true);
     } catch (err) {
       alert(err.response?.data?.message || 'Error adding place');
+    }
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${apiUrl}/api/location/place/${lastPlaceId}/review`,
+        { rating, comment },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('Review added!');
+      setShowReview(false);
+      setRating('');
+      setComment('');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error adding review');
     }
   };
 
@@ -51,6 +76,33 @@ export default function AddPlace() {
             Add
           </button>
         </form>
+        {showReview && (
+          <form onSubmit={handleReviewSubmit} className="w-full flex flex-col gap-4 mt-8">
+            <h3 className="text-lg font-semibold text-blue-700 mb-2">Add a Review for {toLocation}:</h3>
+            <input
+              type="number"
+              min="1"
+              max="5"
+              value={rating}
+              onChange={e => setRating(e.target.value)}
+              placeholder="Rating (1-5)"
+              required
+              className="px-4 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              placeholder="Comment"
+              className="px-4 py-2 border border-gray-300 rounded-md"
+            />
+            <button
+              type="submit"
+              className="w-full py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition"
+            >
+              Submit Review
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
